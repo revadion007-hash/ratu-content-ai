@@ -1,13 +1,13 @@
 export default {
   async fetch(request) {
+    const corsHeaders = {
+      'Access-Control-Allow-Origin': '*',
+      'Access-Control-Allow-Headers': 'Content-Type, x-api-key, anthropic-version, anthropic-dangerous-direct-browser-access',
+      'Access-Control-Allow-Methods': 'POST, OPTIONS',
+    };
+
     if (request.method === 'OPTIONS') {
-      return new Response(null, {
-        headers: {
-          'Access-Control-Allow-Origin': '*',
-          'Access-Control-Allow-Headers': 'Content-Type, x-api-key',
-          'Access-Control-Allow-Methods': 'POST, OPTIONS',
-        }
-      });
+      return new Response(null, { headers: corsHeaders });
     }
 
     if (request.method !== 'POST') {
@@ -18,7 +18,7 @@ export default {
     if (!apiKey) {
       return new Response(JSON.stringify({ error: { message: 'API key missing' } }), {
         status: 400,
-        headers: { 'Content-Type': 'application/json' }
+        headers: { 'Content-Type': 'application/json', ...corsHeaders }
       });
     }
 
@@ -40,7 +40,7 @@ export default {
       status: response.status,
       headers: {
         'Content-Type': 'application/json',
-        'Access-Control-Allow-Origin': '*',
+        ...corsHeaders
       }
     });
   }
