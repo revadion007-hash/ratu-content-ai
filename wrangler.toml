@@ -1,6 +1,0 @@
-name = "ratu-content-ai"
-main = "netlify/functions/claude.js"
-compatibility_date = "2024-01-01"
-
-[build]
-command = ""
