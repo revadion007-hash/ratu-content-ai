@@ -1,109 +1,44 @@
-<!DOCTYPE html>
-<html lang="id">
-<head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Ratu Content AI</title>
+const generate = async () => {
+  setLoading(true);
+  setResult('');
 
-<script src="https://cdnjs.cloudflare.com/ajax/libs/react/18.2.0/umd/react.production.min.js"></script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/react-dom/18.2.0/umd/react-dom.production.min.js"></script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/babel-standalone/7.23.2/babel.min.js"></script>
+  try {
+    const res = await fetch('/api/claude', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify({
+        model: "claude-3-haiku-20240307",
+        max_tokens: 800,
+        messages: [
+          {
+            role: "user",
+            content: `Buatkan caption Instagram tentang: ${input}`
+          }
+        ]
+      })
+    });
 
-<style>
-body {
-  margin:0;
-  background:#0b0b12;
-  color:white;
-  font-family:sans-serif;
-}
-button {
-  padding:12px;
-  border:none;
-  border-radius:10px;
-  background:#c9a84c;
-  font-weight:bold;
-  cursor:pointer;
-}
-textarea {
-  width:100%;
-  padding:10px;
-  border-radius:10px;
-  margin-top:10px;
-}
-</style>
-</head>
+    const data = await res.json();
 
-<body>
-<div id="root"></div>
+    console.log("RESPONSE:", data); // DEBUG
 
-<script type="text/babel">
+    let text = '';
 
-const { useState } = React;
-
-function App() {
-  const [input, setInput] = useState('');
-  const [result, setResult] = useState('');
-  const [loading, setLoading] = useState(false);
-
-  const generate = async () => {
-    setLoading(true);
-    setResult('');
-
-    try {
-      const res = await fetch('/api/claude', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json'
-        },
-        body: JSON.stringify({
-          model: "claude-3-haiku-20240307",
-          max_tokens: 800,
-          messages: [
-            {
-              role: "user",
-              content: `Buatkan caption Instagram tentang: ${input}`
-            }
-          ]
-        })
-      });
-
-      const data = await res.json();
-
-      const text = data?.content?.map(i => i.text).join('') || 'Tidak ada hasil';
-      setResult(text);
-
-    } catch (err) {
-      setResult('Error: gagal mengambil data');
+    if (data && data.content && data.content.length > 0) {
+      text = data.content.map(i => i.text || '').join('');
+    } else if (data.error) {
+      text = 'Error API: ' + (data.error.message || JSON.stringify(data.error));
+    } else {
+      text = 'Response tidak dikenali:\n' + JSON.stringify(data, null, 2);
     }
 
-    setLoading(false);
-  };
+    setResult(text);
 
-  return (
-    <div style={{maxWidth:600,margin:'50px auto'}}>
-      <h2>👑 Ratu Content AI</h2>
+  } catch (err) {
+    setResult('Error: gagal mengambil data');
+  }
 
-      <textarea
-        placeholder="Contoh: desain ruang tamu minimalis..."
-        value={input}
-        onChange={e=>setInput(e.target.value)}
-      />
-
-      <br/><br/>
-
-      <button onClick={generate} disabled={loading}>
-        {loading ? 'Loading...' : 'Generate'}
-      </button>
-
-      <div style={{marginTop:20,whiteSpace:'pre-wrap'}}>
-        {result}
-      </div>
-    </div>
-  );
-}
-
-ReactDOM.render(<App />, document.getElementById('root'));
-
-</script>
-</body>
-</html>
+  setLoading(false);
+};
